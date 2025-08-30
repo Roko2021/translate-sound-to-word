@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>🎤 تحويل صوت السماعة إلى نص (عربي / إنجليزي)</title>
+  <style>
+    body { font-family: Arial; padding: 20px; direction: rtl; background: #f9f9f9; }
+    button { padding: 10px 20px; font-size: 16px; margin: 5px; cursor: pointer; }
+    #text { margin-top: 20px; font-size: 18px; color: green; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+
+  <h1>🎤 تحويل صوت السماعة إلى نص (عربي / إنجليزي)</h1>
+  <button onclick="startRecognition('ar-SA')">🎙️ تسجيل بالعربي</button>
+  <button onclick="startRecognition('en-US')">🎙️ Record in English</button>
+  <button onclick="stopRecognition()">⏹️ قف التسجيل</button>
+
+  <p id="text">📋 النص سيظهر هنا...</p>
+
+  <script>
+    let recognition;
+
+    function startRecognition(lang) {
+      stopRecognition(); // إيقاف أي تسجيل شغال
+
+      if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+        alert("متصفحك لا يدعم التعرف على الصوت.");
+        return;
+      }
+
+      recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = lang;
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      let finalTranscript = '';
+
+      recognition.onstart = () => {
+        document.getElementById('text').textContent = `🎧 جاري الاستماع (${lang === 'ar-SA' ? 'عربي' : 'English'})...`;
+      };
+
+      recognition.onresult = (event) => {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + '\n';
+          } else {
+            interim += transcript;
+          }
+        }
+        document.getElementById('text').textContent = finalTranscript + interim;
+      };
+
+      recognition.onerror = (event) => {
+        document.getElementById('text').textContent = '❌ خطأ: ' + event.error;
+      };
+
+      recognition.onend = () => {
+        document.getElementById('text').textContent += '\n🛑 تم إيقاف التسجيل.';
+      };
+
+      recognition.start();
+    }
+
+    function stopRecognition() {
+      if (recognition) {
+        recognition.stop();
+      }
+    }
+  </script>
+
+</body>
+</html>
